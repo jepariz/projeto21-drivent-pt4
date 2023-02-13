@@ -6,18 +6,17 @@ import ticketRepository from "@/repositories/ticket-repository";
 
 async function createBooking(userId: number, roomId: number) {
     const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
-    
-    if (!enrollment) throw notFoundError();
 
     const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
   
-    if (!ticket || ticket.status === "RESERVED" || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
+    if (ticket.status === "RESERVED" || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
         throw cannotBooking();
       }
 
     const roomExists = await bookingRepository.findRoom(roomId)
+    console.log(roomExists)
 
-    if(!roomExists) throw notFoundError();
+    if(roomExists === null) throw notFoundError();
 
     if(roomExists.capacity === 0) throw cannotBooking();
    
@@ -28,14 +27,30 @@ async function createBooking(userId: number, roomId: number) {
 
   async function getBooking(userId:number) {
     const bookingExists = await bookingRepository.findBooking(userId)
+    console.log(bookingExists)
+    if(bookingExists === null) throw notFoundError();
 
-    if(!bookingExists) throw notFoundError();
+    const booking = {
+      id: bookingExists.id,
+      Room: {
+        id: bookingExists.Room.id,
+        name: bookingExists.Room.name,
+        capacity: bookingExists.Room.capacity,
+        hotelId: bookingExists.Room.hotelId,
+        createdAt: bookingExists.Room.createdAt.toISOString(),
+        updatedAt: bookingExists.Room.updatedAt.toISOString(),
+      }
+    }
+
+    return booking
   }
 
 
 async function updateBooking(userId: number, roomId: number, bookingId: number) {
 
-  await getBooking(userId) 
+  const bookingExists = await bookingRepository.findBooking(userId)
+ 
+  if(bookingExists === null) throw cannotBooking();
 
   const roomExists = await bookingRepository.findRoom(roomId)
 
