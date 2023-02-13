@@ -15,6 +15,8 @@ async function findRoomsByHotelId(hotelId: number) {
   });
 }
 
+
+
 const hotelRepository = {
   findHotels,
   findRoomsByHotelId,
